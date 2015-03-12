@@ -1,0 +1,243 @@
+.calendarview-wrapper {
+    font-family: "Segeo UI";
+    font-size: 14px;
+    color: #444;
+}
+
+/* year control div -----------*/
+.calendarview-operation {
+    float: left;
+    display: inline-block;
+    height: 18px;
+    margin-left: 10px;
+}
+
+.calendarview-operation-btn {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    line-height: 18px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+    .calendarview-operation-btn .icon {
+        margin-top: 5px;
+    }
+
+.calendarview-operation-year-label {
+    margin: 0 7px;
+    vertical-align: top;
+}
+
+/* month nav --------------*/
+.month-nav {
+    min-height: 18px;
+    margin-left: 10px;
+    background-color: transparent;
+    border: 0;
+    line-height: 18px;
+}
+
+.month-nav-item {
+    display: inline-block;
+    width: 65px;
+    height: 18px;
+    margin: 0;
+    padding: 0 16px;
+    font-size: .9em;
+    text-align: center;
+    color: #444;
+    cursor: pointer;
+}
+
+    .month-nav-item:hover {
+        background-color: #ddd;
+    }
+
+    .month-nav-item.selected {
+        color: #fff;
+        background-color: #555;
+    }
+
+/* double calendar table -----------*/
+.month-title {
+    width: 100%;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+}
+
+.calendar-table {
+    min-width: 420px;
+    border: 0px solid #d9d9d9;
+    border-top-width: 1px;
+    border-left-width: 1px;
+}
+
+    .calendar-table th {
+        width: 58px;
+        height: 23px;
+        padding: 0;
+        border: 1px solid #555;
+        text-align: center;
+        font-weight: normal;
+        color: #fff;
+        background-color: #555;
+    }
+
+    .calendar-table td {
+        width: 58px;
+        height: 48px;
+        padding: 0;
+        border: 0px solid #d9d9d9;
+        border-bottom-width: 1px;
+        border-right-width: 1px;
+        text-align: center;
+        cursor: pointer;
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
+
+        .calendar-table td:hover {
+            border: 2px solid #55bbdd;
+        }
+
+.unselectable {
+    cursor: default;
+}
+
+.hasTooltip {
+    cursor: pointer;
+}
+
+.calendar-table td > div {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.notecalendar-datetext {
+    position: absolute;
+    left: 37px;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+}
+
+    .notecalendar-datetext.today {
+        color: #fff;
+        background-color: #233855;
+    }
+
+.notecalendar-selectedicon {
+    display: none;
+    position: absolute;
+    left: 38px;
+    top: 27px;
+    width: 22px;
+    height: 22px;
+}
+
+.calendar-table td.notecalendar-selected {
+    border: 2px solid #555;
+}
+
+    .calendar-table td.notecalendar-selected .notecalendar-selectedicon {
+        display: block;
+    }
+
+.notecalendar-extension {
+    position: absolute;
+    left: 0;
+    top: 29px;
+    width: 18px;
+    height: 18px;
+}
+/* color tips list ----------------*/
+.colortips {
+    width: 165px;
+    padding-left: 30px;
+    margin-top: 40px;
+    list-style: none;
+}
+
+    .colortips li {
+        height: 30px;
+    }
+
+        .colortips li span {
+            width: 11px;
+            height: 11px;
+            display: inline-block;
+            margin-right: 9px;
+            vertical-align: sub;
+        }
+
+span.non-working {
+    background-color: #fce17a;
+}
+
+span.taken {
+    background-color: #c8c8c8;
+}
+
+span.approved {
+    background-color: #99d077;
+}
+
+span.rejected {
+    background-color: #f99;
+}
+
+span.pending {
+    background-color: #88d1ee;
+}
+
+span.taking {
+    background-color: #fcc066;
+}
+
+span.mutiple-requests {
+    background-color: #bdbdfe;
+}
+
+span.cancelled {
+    background-color: #ddd;
+}
+
+div.non-working {
+    background-color: #ffe;
+}
+
+div.taken {
+    background-color: #e4e3e3;
+}
+
+div.approved {
+    background-color: #cefcce;
+}
+
+div.rejected {
+    background-color: #fcc;
+}
+
+div.pending {
+    background-color: #bef;
+}
+
+div.taking {
+    background-color: #fcc055;
+}
+
+div.mutiple-requests {
+    background-color: #d1ccff;
+}
+
+div.cancelled {
+    background-color: #f3f3f3;
+}
