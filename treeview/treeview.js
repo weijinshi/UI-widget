@@ -5,34 +5,29 @@
     var pluginGlobal = {
         _template: {
             controlDiv: '<div class="controlDiv treeview-control"></div>',
-            list: '<ul class="tree-node-group"></ul>',
-            item: '<li class="tree-node"></li>',
+            list: '<div class="tree-node-group"></div>',
+            item: '<div class="tree-node"></div>',
             indent: '<span class="indent"></span>',
             foldedIcon: '<span class="folded" role="folded"></span>',
             unfoldedIcon: '<span class="unfolded" role="folded"></span>',
-            leafNode: '<li class="tree-leaf"></li>',
+            leafNode: '<div class="tree-leaf"></div>',
             leafAddBtn: '<a><span class="icon icon-add"></span>Add Organization Structure</a>',
         }
     };
 
     var Tree = Class.extend({
-        _element: undefined,
-        _elementId: undefined,
-        _styleId: undefined,
         $element: null,
         $wrapper: null,
         $controlDiv: null,
-        data: null,
         controlDiv: null,
+        data: null,
+        dataForTree: null,
         initialized: false,
         nodes: null,
         selectedNode: null,
 
         ctor: function(element, options) {
             this.$element = $(element);
-            this._element = element;
-            this._elementId = this._element.id;
-            this._styleId = this._elementId + '-style';
             this.nodes = [];
             this._init(options);
         },
@@ -53,11 +48,15 @@
         },
         setData: function(data) {
             var self = this;
+            var oldData = self.data;
             self.data = data || self.data;
             if (self.data) {
                 self.data.isRootNode = true;
             }
-            self._preProcessData(self.data);
+            self._addLeafNodeToData(self.data);
+            if (oldData) {
+                self._mergeFoldedSetting(self.data, oldData);
+            }
             self._render();
         },
         updateNode: function(newNode) {
@@ -69,17 +68,15 @@
             var self = this;
             return self._findNodeById(nodeid, self.data);
         },
-        _preProcessData: function(node) {
-            var self = this;
-
+        _addLeafNodeToData: function(node) {
             if (!node) return;
 
-            if (node.Children) {
+            var self = this;
+            if (node.Children && node.Children.length > 0) {
                 $.each(node.Children, function(id, cnode) {
-                    self._preProcessData(cnode);
+                    self._addLeafNodeToData(cnode);
                 });
             }
-
             // leaf node
             if (self.options.hasAddNodeInLeaf) {
                 var leafNode = new Object();
@@ -89,10 +86,23 @@
                     node.Children = [];
                 }
                 node.Children.push(leafNode);
+                if (node.Children.length == 1) {
+                    node.folded = true;
+                }
             }
+        },
+        _mergeFoldedSetting: function(node, oldData) {
+            if (!node) return;
 
-            if (!node.isRootNode) {
-                self._toggleNodes(node);
+            var self = this;
+            var findResultNode = self._findNodeById(node.Id, oldData);
+            if (findResultNode) {
+                node.folded = findResultNode.folded;
+            }
+            if (node.Children && node.Children.length > 0) {
+                $.each(node.Children, function(id, cnode) {
+                    self._mergeFoldedSetting(cnode, oldData);
+                });
             }
         },
         _recursionUpdateNode: function(node, newNode) {
@@ -147,7 +157,7 @@
                 self.$wrapper.find('.tree-node').removeClass('selected');
                 $(this).addClass('selected');
             });
-            if (self.options.onNodeSelected && typeof(self.options.onNodeSelected) === 'function') {
+            if (self.options.onNodeSelected && typeof (self.options.onNodeSelected) === 'function') {
                 self.$wrapper.find('.tree-node').on(
                     'click',
                     { callback: self.options.onNodeSelected },
@@ -164,7 +174,7 @@
         },
         _bindLeafNodeClick: function() {
             var self = this;
-            if (self.options.leafNodeClick && typeof(self.options.leafNodeClick) === 'function') {
+            if (self.options.leafNodeClick && typeof (self.options.leafNodeClick) === 'function') {
                 self.$wrapper.find('.tree-leaf').on(
                     'click',
                     { callback: self.options.leafNodeClick },
@@ -224,7 +234,7 @@
                     .attr('data-nodeid', node.nodeId)
                     .attr('data-id', node.Id)
                     .attr('data-parentid', node.parentId);
-                for (var i = 0; i < (level - 2); i++) {
+                for (var i = 0; i < (level - 2) ; i++) {
                     var $indent = $(pluginGlobal._template.indent);
                     treeLeaf.append($indent);
                 }
@@ -240,7 +250,10 @@
                 treeItem.addClass('selected');
             }
 
-            for (var i = 0; i < (level - 2); i++) {
+            // tree node boder-left
+            treeItem.append('<span class="tree-node-border-left">');
+
+            for (var i = 0; i < (level - 2) ; i++) {
                 var $indent = $(pluginGlobal._template.indent);
                 treeItem.append($indent);
             }
@@ -255,21 +268,22 @@
             }
 
             // folded icon
-            if (!(node.nodeId == 0 && !self.options.rootFoldable)) {
-                var $foldedIcon = $(pluginGlobal._template.indent);
-                if (node.folded === true) {
+            var $foldedIcon = $(pluginGlobal._template.indent);
+            if (node.Children && node.Children.length > 0) {
+                if (node.folded) {
                     $foldedIcon.attr('role', 'folded').addClass(self.options.foldedIcon);
-                } else if (node.folded === false) {
+                }
+                else {
                     $foldedIcon.attr('role', 'folded').addClass(self.options.unfoldedIcon);
                 }
-                treeItem.append($foldedIcon);
             }
+            treeItem.append($foldedIcon);
 
             treeItem.append(node.Name);
 
             self.$wrapper.append(treeItem);
 
-            if (node.Children) {
+            if (node.Children && !node.folded) {
                 $.each(node.Children, function(id, node) {
                     self._buildTree(node, level);
                 });
@@ -322,21 +336,17 @@
         },
 
         _toggleNodes: function(node) {
-            if (!node.Children && !node._Children) {
+            if (!node.Children) {
                 return;
             }
-            if (node.Children) {
-                node.folded = true;
-                node._Children = node.Children;
-                delete node.Children;
-            } else {
+            if (node.folded) {
                 node.folded = false;
-                node.Children = node._Children;
-                delete node._Children;
+            } else {
+                node.folded = true;
             }
         },
         _findNode: function(target) {
-            var nodeId = target.closest('li.tree-node').attr('data-nodeid');
+            var nodeId = target.closest('.tree-node').attr('data-nodeid');
             var node = this.nodes[nodeId];
             if (!node) {
                 window.console.log('Error: node does not exist');

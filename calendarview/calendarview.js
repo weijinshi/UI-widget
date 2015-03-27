@@ -9,13 +9,13 @@
             col_md_5: '<div class="col-md-5"></div>',
             col_md_2: '<div class="col-md-2"></div>',
             operationDiv: '<div class="calendarview-operation"></div>',
-            yearPrev: '<span class="calendarview-operation-btn year_prev_btn"><span class="icon icon-paging-left3"></span></span>',
+            yearPrev: '<span class="calendarview-operation-btn year_prev_btn"><span class="icon icon-paging-left"></span></span>',
             yearShow: '<span class="calendarview-operation-year-label"></span>',
-            yearNext: '<span class="calendarview-operation-btn year_next_btn"><span class="icon icon-paging-right3"></span></span>',
+            yearNext: '<span class="calendarview-operation-btn year_next_btn"><span class="icon icon-paging-right"></span></span>',
             monthNav: '<div class="month-nav"></div>',
             monthNavItem: '<li class="month-nav-item"></li>',
             monthTitle: '<div class="month-title"></div>',
-            calendarTable: '<table class="calendar-table" cellpadding="0" cellspacing="0"></table>',
+            calendarTable: '<table class="calendar-table" cellpadding="0" cellspacing="0" onselectstart="return false;"></table>',
             noteCalendarDateText: '<div class="notecalendar-datetext"></div>',
             noteCalendarExtendsion: '<div class="notecalendar-extension"></div>',
             dayStatusIcon: [
@@ -26,7 +26,8 @@
             	'<span class="icon icon-holiday-status3"></span>',
             	'<span class="icon icon-holiday-status4"></span>',
              	'<span class="icon icon-holiday-status5"></span>',
-                '<span class="icon icon-holiday-status7"></span>'
+                '<span class="icon icon-holiday-status7"></span>',
+                '<span class="icon icon-holiday-status8"></span>'
             ],
             noteCalendarSelectedIcon: '<div class="notecalendar-selectedicon"><span class="icon icon-selected"></span></div>',
             colortips: '<ul class="colortips">' +
@@ -40,7 +41,7 @@
                 '    <li><span class="cancelled"></span>' + vCloud.i18n.get('PTO_Plugin_RequestStatus_Cancelled', 'Cancelled') + '</li>' +
                 '</ul>',
         },
-        dayStatus: ['non-working', 'taken', 'approved', 'rejected', 'pending', 'taking', 'mutiple-requests', 'cancelled'],
+        dayStatus: ['non-working', 'taken', 'approved', 'rejected', 'pending', 'taking', 'mutiple-requests', 'cancelled', 'holiday'],
         months: [
                 vCloud.i18n.get('PTO_Plugin_Calendar_Jan', 'Jan'),
                 vCloud.i18n.get('PTO_Plugin_Calendar_Feb', 'Feb'),
@@ -111,6 +112,7 @@
         selectedDays: [],
         options: null,
         requestsDataToShow: [],
+        holidays: [],
 
         ctor: function(element, options) {
             this.$element = $(element);
@@ -133,6 +135,14 @@
             }
             var self = this;
             self.requestsDataToShow = requestsData;
+            self._render();
+        },
+        setHolidayData: function(holidaysData) {
+            if (!holidaysData || holidaysData.length == 0) {
+                return;
+            }
+            var self = this;
+            self.holidays = holidaysData;
             self._render();
         },
         _init: function(options) {
@@ -167,23 +177,39 @@
             self.$element.on('click', '.year_next_btn', nextYearBtnClick);
             self.$element.on('click', '.month-nav-item', monthNavItemClick);
 
+            self.$element.on('click', '.calendar-td > div', calendarTdClick);
+
+            if (self.options.yearNextorPrevBtnClickCallback && typeof (self.options.yearNextorPrevBtnClickCallback === 'function')) {
+                self.$element.on(
+                    'click',
+                    '.calendarview-operation-btn',
+                    {callback: self.options.yearNextorPrevBtnClickCallback },
+                    function(e) {
+                        var callback = e.data.callback;
+                        callback(self.yearShow);
+                        return false;
+                    }
+                );
+            }
+
             if (self.options.showTooltipCallback && typeof (self.options.showTooltipCallback) === 'function') {
                 self.$element.on(
             		'click',
-            		'.hasTooltip',
+            		'.calendar-td',
             		{ callback: self.options.showTooltipCallback },
             		function(e) {
-            		    var date = $(this).attr('data-real-date');
-            		    var requests = $(this).data('requests');
-            		    var callback = e.data.callback;
-            		    callback(date, requests);
-            		    showSelectAction($(this).parent());   // for select action
-            		    return false;
+            		    var $tdDiv = $(this).children();
+            		    if ($tdDiv.hasClass('hasTooltip')) {
+            		        var date = $tdDiv.attr('data-real-date');
+            		        var requests = $tdDiv.data('requests');
+            		        var holidays = $tdDiv.data('holidays');
+            		        var callback = e.data.callback;
+            		        callback(date, requests, holidays);
+            		        return false;
+            		    }
             		}
             	);
             }
-            self.$element.on('click', '.calendar-table td', calendarTdClick);
-
 
             function prevYearBtnClick() {
                 self.yearShow--;
@@ -198,10 +224,7 @@
                 self._render();
             }
             function calendarTdClick(event) {
-                var $td = $(this);
-                showSelectAction($td);
-            }
-            function showSelectAction($td) {
+                var $td = $(this).parent();
                 var $tdDiv = $td.children();
                 if (!$td.hasClass('unselectable')) {
                     var clickDay = $tdDiv.attr('data-real-date');
@@ -221,6 +244,7 @@
                             }
                         }
                     }
+                    self.$element.find('.calendar-table').find('.notecalendar-selected').find('.td-selected-border').hide();
                     self.$element.find('.calendar-table').find('td').removeClass('notecalendar-selected');
 
                     if (isSelected) {
@@ -245,9 +269,17 @@
                         var startIndex = allSelectableDate.indexOf(start);
                         var endIndex = allSelectableDate.indexOf(end);
                         for (var i = startIndex; i <= endIndex; i++) {
-                            $(allSelectableDiv[i]).parent().addClass('notecalendar-selected');
+                            if (!$(allSelectableDiv[i]).parent().hasClass('unselectable')) {
+                                $(allSelectableDiv[i]).parent().addClass('notecalendar-selected');
+                            }
                         }
                     }
+                }
+
+                if (self.$element.find('.calendar-table').find('.notecalendar-selected')) {
+                    self.$element.find('.calendar-table').find('.notecalendar-selected').find('.td-selected-border').show();
+                } else {
+                    self.$element.find('.calendar-table').find('.notecalendar-selected').find('.td-selected-border').hide();
                 }
 
                 self.selectedDays = self.getSelectedDays();
@@ -282,6 +314,7 @@
                 monthNavItem.text(pluginGlobal.months[i]);
                 if (i === self.monthShow || i === (self.monthShow + 1)) {
                     monthNavItem.addClass('selected');
+                    monthNavItem.addClass('theme');
                 }
                 monthNav.append(monthNavItem);
             }
@@ -312,7 +345,7 @@
                 var $table = $(pluginGlobal._template.calendarTable);
                 var $firstTr = $('<tr>');
                 for (var i = 0; i < 7; i++) {
-                    $firstTr.append($('<th>').text(pluginGlobal.weeks[i]));
+                    $firstTr.append($('<th class="theme">').text(pluginGlobal.weeks[i]));
                 }
                 $table.append($firstTr);
 
@@ -350,6 +383,18 @@
 
                         var $extension = $(pluginGlobal._template.noteCalendarExtendsion);
 
+                        // holiday data
+                        var holidaysOnDate = self.holidays[presentDate];
+                        if (holidaysOnDate && holidaysOnDate.length > 0) {
+                            $td.addClass('unselectable');
+                            $tdContainer.addClass('unselectable hasTooltip');
+                            $tdContainer.data('holidays', holidaysOnDate);
+                            $td.addClass(pluginGlobal.dayStatus[8]);
+                            $tdContainer.addClass(pluginGlobal.dayStatus[8]);
+                            $extension.append(pluginGlobal._template.dayStatusIcon[8]);
+                        }
+
+                        // request data
                         if (!$td.hasClass('unselectable')) {
                             var requests = getRequestOnDay(presentDate);
                             if (requests && requests.length > 0) {
@@ -371,7 +416,7 @@
                                 }
                             }
                         }
-
+                        
                         if (pluginGlobal.isObjInArray(self.selectedDays, presentDate)) {
                             $tdContainer.addClass('nodecalendar-selected');
                         }
@@ -379,13 +424,16 @@
                         if (pluginGlobal.currentDate.getFullYear() == year
                         	&& pluginGlobal.currentDate.getMonth() == month
                         	&& pluginGlobal.currentDate.getDate() == dayLabel) {
-                            dateText.addClass('today');
+                            dateText.addClass('today theme-button');
                         }
                         $tdContainer.append(dateText);
                         $tdContainer.append($extension);
                         $tdContainer.append(pluginGlobal._template.noteCalendarSelectedIcon);
+                        $tdContainer.append($('<div class="td-hover-border">'));
+                        $tdContainer.append($('<div class="td-selected-border">'));
 
-                        $tr.append($td.append($tdContainer));
+                        $td.append($tdContainer);
+                        $tr.append($td);
 
                         if (dayLabel === daysInMonth) {
                             dayLabel++;

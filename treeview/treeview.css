@@ -4,15 +4,21 @@
     font-size: 13px;
 }
 
-.treeview .treeview-control .controlBtn {
-    height: 30px;
-    margin-right: 25px;
-    line-height: 30px;
-    text-decoration: none;
-    color: #333;
-}
+    .treeview .treeview-control .controlBtn {
+        height: 30px;
+        margin-right: 25px;
+        line-height: 30px;
+        color: #333;
+    }
 
-.treeview .treeview-control .controlBtn .icon { vertical-align: -4px; }
+        .treeview .treeview-control .controlBtn[disabled] {
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .treeview .treeview-control .controlBtn .icon {
+            vertical-align: -4px;
+        }
 
 .treeview ul {
     margin: 0;
@@ -21,41 +27,62 @@
 }
 
 .treeview .tree-node {
+    position: relative;
     height: 32px;
     line-height: 32px;
     border-bottom: 1px solid #fff;
-    border-left: 3px solid #f1f1f1;
     font-family: "Segoe UI Semibold", "Segoe UI";
     font-weight: 600;
     font-size: 13px;
     color: #333;
     background-color: #f1f1f1;
+    padding-left: 10px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-.treeview .tree-node:hover, .treeview .tree-node.selected {
-    border-left-color: #ffaf02;
-    background-color: #e1e1e1;
-    cursor: default;
-}
+    .treeview .tree-node .tree-node-border-left {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        width: 2px;
+        height: 100%;
+    }
+
+        .treeview .tree-node .tree-node-border-left:hover, .treeview .tree-node.selected .tree-node-border-left {
+            border-left: 3px solid #ffaf02;
+        }
+
+    .treeview .tree-node:hover, .treeview .tree-node.selected {
+        background-color: #e1e1e1;
+        cursor: default;
+    }
+
+    .treeview .tree-node:first-child span[role="folded"] {
+        display: none;
+    }
 
 .treeview .tree-leaf {
     height: 32px;
-    padding-left: 4px;
+    padding-left: 10px;
     line-height: 32px;
     font-size: 13px;
     color: #048;
 }
 
-.treeview .tree-leaf a { cursor: pointer; }
+    .treeview .tree-leaf a {
+        cursor: pointer;
+    }
 
-.treeview .tree-leaf .icon { vertical-align: -4px; }
+    .treeview .tree-leaf .icon {
+        vertical-align: -4px;
+    }
 
 .treeview .icon {
     margin-right: 5px;
-    vertical-align: -7px;
+    vertical-align: -4px;
     cursor: pointer;
 }
 
@@ -65,4 +92,6 @@
     margin-right: 5px;
 }
 
-.treeview .indent-inherit { width: 18px; }
+.treeview .indent-inherit {
+    width: 18px;
+}
