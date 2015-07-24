@@ -56,17 +56,17 @@
 </head>
 <body>
     <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+    <button type="button" class="btn btn-primary btn-lg" id="showModalBtn">
       Launch demo modal
     </button>
 
     <!-- Modal -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal fade" id="photoSlideModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="vertical-alignment-helper">
             <div class="modal-dialog vertical-align-center" role="document">
                 <div class="modal-content">
                   <div class="modal-body">
-                    <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                    <div id="photoSlideCarousel" class="carousel slide" data-ride="carousel">
                       <!-- Wrapper for slides -->
                       <div class="carousel-inner" role="listbox">
                         <div class="item active">
@@ -94,10 +94,13 @@
                 duration: 100
             });
 
-            $("#carousel-example-generic").swiperight(function() {  
+            $('#showModalBtn').click(function(e) {
+                $('#photoSlideModal').modal('show');
+            });
+            $("#photoSlideCarousel").swiperight(function() {  
                 $(this).carousel('prev');  
             });  
-            $("#carousel-example-generic").swipeleft(function() {  
+            $("#photoSlideCarousel").swipeleft(function() {  
                 $(this).carousel('next');  
             });
         }); 
